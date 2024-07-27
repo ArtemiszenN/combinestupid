@@ -64,8 +64,8 @@ private:
     void load()
     {
         user_to_info.clear();
-        auto reader = std::async([&]
-                                 { return read(); });
+        future<nlohmann::json> reader = std::async([&]
+                                                   { return read(); });
         nlohmann::json json = reader.get();
         for (const auto &[user, info] : json.items())
         {
