@@ -24,7 +24,7 @@ public:
 private:
     std::string state_file = "user_state.txt";
 
-    std::map<dpp::user, std::string, std::function<bool(const dpp::user &, const dpp::user &)>> user_to_info;
+    std::map<std::string, std::string> user_to_info;
 
     void write(nlohmann::json json);
 

@@ -6,7 +6,7 @@ extern std::map<dpp::user, std::string, std::function<bool(const dpp::user &, co
 std::optional<std::string> User_state::get_user_info(dpp::user user)
 {
     std::cout << "Getting user info for " << user.username << "\n";
-    if (auto user_with_info = user_to_info.find(user); user_with_info != user_to_info.end())
+    if (auto user_with_info = user_to_info.find(user.username); user_with_info != user_to_info.end())
     {
         return user_with_info->second;
     }
@@ -16,13 +16,11 @@ std::optional<std::string> User_state::get_user_info(dpp::user user)
 void User_state::set_user_info(dpp::user user, std::string info)
 {
     std::cout << "Setting payment info for " << user.username << " to " << info << '\n';
-    user_to_info[user] = info;
+    user_to_info[user.username] = info;
 }
 
 User_state::User_state()
 {
-    user_to_info = std::map<dpp::user, std::string, std::function<bool(const dpp::user &, const dpp::user &)>>([](const dpp::user user, const dpp::user other)
-                                                                                                               { return user.to_json(true) < other.to_json(true); });
     std::thread t(&User_state::load, this);
     t.join();
 }
@@ -35,6 +33,7 @@ User_state::~User_state()
 
 void User_state::write(nlohmann::json json)
 {
+    std::cout << "Writing user state\n";
     std::ofstream out(state_file);
     out << json;
     out.close();
@@ -42,12 +41,8 @@ void User_state::write(nlohmann::json json)
 void User_state::save()
 {
     std::cout << "Saving user state\n";
-    std::map<dpp::json, std::string> user_to_info_stringable;
-    for (const auto &[dpp_user, info] : user_to_info)
-    {
-        user_to_info_stringable[dpp_user.to_json(true)] = info;
-    }
-    nlohmann::json json(user_to_info_stringable);
+    nlohmann::json json;
+    json["user_state"] = user_to_info;
     std::thread writer(&User_state::write, this, json);
     writer.join();
     std::cout << "User state saved\n";
@@ -79,11 +74,9 @@ void User_state::load()
     std::future<nlohmann::json> reader = std::async([&]
                                                     { return User_state::read(); });
     nlohmann::json json = reader.get();
-    for (const auto &[dpp_user, info] : json.items())
+    for (const auto &[username, info] : json["user_state"].items())
     {
-        nlohmann::json json_user(dpp_user);
-        dpp::user user(json_user);
-        user_to_info[user] = info;
+        user_to_info[username] = info;
     }
     std::cout << "User state loaded successfully\n";
 }
