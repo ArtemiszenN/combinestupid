@@ -34,7 +34,7 @@ int main()
         dpp::user user = event.command.get_issuing_user();
 		if (event.command.get_command_name() == "setpayment") {
             std::string payment_info = std::get<std::string>(event.get_parameter("payment_info"));
-            Set_info::set_info(std::move(user_state), user, payment_info);
+            Set_info::set_info(user_state, user, payment_info);
             event.reply("Payment details set for " + (user.username) + " to:\n" + payment_info);
         } });
 

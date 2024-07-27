@@ -1,8 +1,9 @@
 
 #include "user_state.h"
-extern std::string state_file;
 
-extern std::map<dpp::user, std::string, std::function<bool(const dpp::user &, const dpp::user &)>> user_to_info;
+extern std::string state_file;
+extern std::map<std::string, std::string> user_to_info;
+
 std::optional<std::string> User_state::get_user_info(dpp::user user)
 {
     std::cout << "Getting user info for " << user.username << "\n";
@@ -15,8 +16,9 @@ std::optional<std::string> User_state::get_user_info(dpp::user user)
 
 void User_state::set_user_info(dpp::user user, std::string info)
 {
-    std::cout << "Setting payment info for " << user.username << " to " << info << '\n';
-    user_to_info[user.username] = info;
+    std::string username = user.username;
+    user_to_info[username] = info;
+    std::cout << "Setting payment info for " << username << " to " << info << '\n';
 }
 
 User_state::User_state()
@@ -38,6 +40,7 @@ void User_state::write(nlohmann::json json)
     out << json;
     out.close();
 }
+
 void User_state::save()
 {
     std::cout << "Saving user state\n";
@@ -47,6 +50,7 @@ void User_state::save()
     writer.join();
     std::cout << "User state saved\n";
 }
+
 nlohmann::json User_state::read()
 {
     std::ifstream in(state_file);
@@ -67,13 +71,12 @@ nlohmann::json User_state::read()
     in.close();
     return json;
 }
+
 void User_state::load()
 {
     std::cout << "Loading user state\n";
     user_to_info.clear();
-    std::future<nlohmann::json> reader = std::async([&]
-                                                    { return User_state::read(); });
-    nlohmann::json json = reader.get();
+    nlohmann::json json = User_state::read();
     for (const auto &[username, info] : json["user_state"].items())
     {
         user_to_info[username] = info;
