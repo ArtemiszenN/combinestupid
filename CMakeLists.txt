@@ -8,6 +8,12 @@
 	# Create an executable
 	add_executable(${PROJECT_NAME}
 	    src/main.cpp
+		src/states/user_state.cpp 
+		src/states/user_state.h
+		src/states/state_manager.cpp 
+		src/states/state_manager.h 
+		src/commands/set_info.cpp 
+		src/commands/set_info.h
 	)
 	
 	include(FetchContent)
@@ -26,7 +32,6 @@
 	# Include the DPP directories.
 	target_include_directories(${PROJECT_NAME} PRIVATE
 	    ${DPP_INCLUDE_DIR}
-		src/
 	)
 	 
 	# Set C++ version

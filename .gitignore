@@ -1,2 +1,3 @@
 build/
 .vscode/
+src/states/user_state.txt
