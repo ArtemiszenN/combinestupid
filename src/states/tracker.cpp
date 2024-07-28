@@ -25,7 +25,9 @@ void Tracker::add_edge_and_compress(Tracker_edge edge) {
                                 const std::pair<user_id, unsigned long long int> &rhs) {
         return lhs.second < rhs.second;
     };
-    std::priority_queue<std::pair<user_id, unsigned long long int>> owes, owed;
+    std::priority_queue<std::pair<user_id, unsigned long long int>,
+                        std::vector<std::pair<user_id, unsigned long long int>>, decltype(compare_by_amount)>
+        owes(compare_by_amount), owed(compare_by_amount);
     for (auto [user_id, amount] : balances) {
         if (amount < 0) {
             owes.push({user_id, (unsigned long long int)abs(amount)});
