@@ -12,13 +12,13 @@ enum Transaction_type { Owes, Owed };
 
 struct Tracker_edge {
     guild_id guild;
-    user_id from;
-    user_id to;
+    user_id owed;
+    user_id owes;
     cents amount;
 };
 
 struct Transaction {
-    user_id to;
+    user_id other_party;
     cents amount;
     Transaction_type transaction_type;
 };
