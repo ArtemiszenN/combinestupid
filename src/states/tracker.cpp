@@ -99,11 +99,11 @@ void Tracker::add_edge_with_compression(Tracker_edge edge)
 
 std::variant<bool, transaction_error> Tracker::add_transaction(guild_id guild, user_id to, user_id from, long double amount)
 {
-    if (amount > 1e15 || amount < -1e15 || (cents)amount <= 0)
+    if (amount > 1e15 || amount < -1e15 || (cents)amount * 100UL <= 0)
     {
         return transaction_error("Amount entered is either above 1e15 dollars, nothing or a negative value");
     }
-    Tracker::add_edge_with_compression(Tracker_edge{guild, to, from, (cents)amount});
+    Tracker::add_edge_with_compression(Tracker_edge{guild, to, from, (cents)amount * 100UL});
     return true;
 }
 
@@ -136,10 +136,7 @@ void Tracker::save()
     {
         for (const auto &[from, to_with_owed_amount] : user_id_to_user_id_with_owed_amount)
         {
-            for (const auto &[to, owed_amount] : to_with_owed_amount)
-            {
-                json["adjacency_list"][guild][from][to] = owed_amount;
-            }
+            json["adjacency_list"][guild][from] = to_with_owed_amount;
         }
     }
     // this should be in io_utils, but passing json as argument to another translation unit is bugged
