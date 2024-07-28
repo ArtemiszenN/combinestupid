@@ -1,17 +1,20 @@
 #pragma once
+
 #include <map>
 #include <dpp/dpp.h>
 #include <string>
 #include <optional>
 #include <iostream>
-#include <fstream>
 #include <thread>
 #include <nlohmann/json.hpp>
 #include <functional>
+#include "../types/shared.h"
+#include "../utils/io_utils.h"
+
 class User_state
 {
 public:
-    std::optional<std::string> get_user_info(dpp::user user);
+    std::optional<user_id> get_user_info(user_id user);
 
     void set_user_info(dpp::user user, std::string info);
 
@@ -24,11 +27,7 @@ public:
 private:
     std::string state_file = "user_state.txt";
 
-    std::map<std::string, std::string> user_to_info;
-
-    void write(nlohmann::json json);
-
-    nlohmann::json read();
+    std::map<user_id, std::string> user_to_info;
 
     void load();
 };
