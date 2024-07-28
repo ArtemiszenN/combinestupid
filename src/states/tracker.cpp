@@ -25,7 +25,7 @@ void Tracker::remove_edge(guild_id guild, user_id from, user_id to)
 
 std::optional<cents> Tracker::get_edge(guild_id guild, user_id from, user_id to)
 {
-    if (adjacency_list.contains(guild) && adjacency_list[guild].contains(from) && adjacency_list[guild][from].contains(to))
+    if (adjacency_list.contains(guild) && adjacency_list.at(guild).contains(from) && adjacency_list.at(guild).at(from).contains(to))
     {
         return adjacency_list.at(guild).at(from).at(to);
     }
@@ -142,7 +142,7 @@ void Tracker::save()
             }
         }
     }
-    //this should be in io_utils, but passing json as argument to another translation unit is bugged
+    // this should be in io_utils, but passing json as argument to another translation unit is bugged
     std::thread writer([this, &json]()
                        {
         std::ofstream out(state_file);
