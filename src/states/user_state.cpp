@@ -1,13 +1,12 @@
-
 #include "user_state.h"
 
 extern std::string state_file;
-extern std::map<std::string, std::string> user_to_info;
+extern std::map<user_id, std::string> user_to_info;
 
-std::optional<std::string> User_state::get_user_info(dpp::user user)
+std::optional<user_id> User_state::get_user_info(user_id user)
 {
-    std::cout << "Getting user info for " << user.username << "\n";
-    if (auto user_with_info = user_to_info.find(user.username); user_with_info != user_to_info.end())
+    std::cout << "Getting user info for " << user << "\n";
+    if (auto user_with_info = user_to_info.find(user); user_with_info != user_to_info.end())
     {
         return user_with_info->second;
     }
@@ -16,9 +15,8 @@ std::optional<std::string> User_state::get_user_info(dpp::user user)
 
 void User_state::set_user_info(dpp::user user, std::string info)
 {
-    std::string username = user.username;
-    user_to_info[username] = info;
-    std::cout << "Setting payment info for " << username << " to " << info << '\n';
+    user_to_info[user.id.str()] = info;
+    std::cout << "Setting payment info for " << user.username << " to " << info << '\n';
 }
 
 User_state::User_state()
@@ -33,53 +31,29 @@ User_state::~User_state()
     t.join();
 }
 
-void User_state::write(nlohmann::json json)
-{
-    std::cout << "Writing user state\n";
-    std::ofstream out(state_file);
-    out << json;
-    out.close();
-}
-
 void User_state::save()
 {
     std::cout << "Saving user state\n";
     nlohmann::json json;
     json["user_state"] = user_to_info;
-    std::thread writer(&User_state::write, this, json);
+    // this should be in io_utils, but passing json as argument to another translation unit is bugged
+    std::thread writer([this, &json]()
+                       {
+        std::ofstream out(state_file);
+        out << json;
+        out.close(); });
     writer.join();
     std::cout << "User state saved\n";
-}
-
-nlohmann::json User_state::read()
-{
-    std::ifstream in(state_file);
-    nlohmann::json json;
-
-    try
-    {
-        json = nlohmann::json::parse(in);
-        std::cout << "User state parsed successfully\n";
-    }
-    catch (std::exception parse_error)
-    {
-        std::cout << "Error occurred while parsing user state: " << parse_error.what() << '\n';
-        json = nlohmann::json(std::map<nlohmann::json, std::string>());
-        std::cout << "Resuming with empty state file\n";
-    }
-
-    in.close();
-    return json;
 }
 
 void User_state::load()
 {
     std::cout << "Loading user state\n";
     user_to_info.clear();
-    nlohmann::json json = User_state::read();
-    for (const auto &[username, info] : json["user_state"].items())
+    nlohmann::json json = Io_utils::read(state_file, "user state");
+    for (const auto &[user_id, info] : json["user_state"].items())
     {
-        user_to_info[username] = info;
+        user_to_info[user_id] = info;
     }
     std::cout << "User state loaded successfully\n";
 }
