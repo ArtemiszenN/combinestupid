@@ -1,18 +1,17 @@
 #pragma once
 
-#include <dpp/dpp.h>
-#include <map>
-#include <string>
-#include <fstream>
-#include <nlohmann/json.hpp>
 #include "../types/tracker_types.h"
 #include "../utils/io_utils.h"
-#include <vector>
+#include <dpp/dpp.h>
+#include <fstream>
+#include <map>
+#include <nlohmann/json.hpp>
+#include <string>
 #include <variant>
+#include <vector>
 
-class Tracker
-{
-public:
+class Tracker {
+  public:
     Tracker();
 
     ~Tracker();
@@ -24,7 +23,7 @@ public:
 
     std::vector<Transaction> get_transactions(guild_id guild, user_id user);
 
-private:
+  private:
     std::string state_file = "tracker_state.txt";
 
     guild_adjacency_list adjacency_list;

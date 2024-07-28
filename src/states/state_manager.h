@@ -1,21 +1,21 @@
 #pragma once
 
-#include <dpp/dpp.h>
-#include "user_state.h"
 #include "tracker.h"
+#include "user_state.h"
+#include <dpp/dpp.h>
 #include <memory>
 #include <thread>
 
-class State_manager
-{
-public:
+class State_manager {
+  public:
     void start();
 
-    State_manager(int _user_state_save_interval_seconds, int _tracker_save_interval_seconds, std::shared_ptr<User_state> _user_state, std::shared_ptr<Tracker> _tracker);
+    State_manager(int _user_state_save_interval_seconds, int _tracker_save_interval_seconds,
+                  std::shared_ptr<User_state> _user_state, std::shared_ptr<Tracker> _tracker);
 
     ~State_manager();
 
-private:
+  private:
     int user_state_save_interval_seconds;
 
     int tracker_save_interval_seconds;
