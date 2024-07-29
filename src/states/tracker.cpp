@@ -30,7 +30,7 @@ void Tracker::add_edge_and_compress(Tracker_edge edge) {
         owes(compare_by_amount), owed(compare_by_amount);
     for (auto [user_id, amount] : balances) {
         if (amount < 0) {
-            owes.push({user_id, (unsigned long long int)abs(amount)});
+            owes.push({user_id, (unsigned long long int)llabs(amount)});
         } else if (amount > 0) {
             owed.push({user_id, (unsigned long long int)amount});
         }
@@ -56,7 +56,7 @@ void Tracker::add_edge_and_compress(Tracker_edge edge) {
               << edge.guild << '\n';
 }
 
-cents Tracker::absolute_user_balance(guild_id guild, user_id user) {
+long long int Tracker::user_balance(guild_id guild, user_id user) {
     long long int user_balance = 0;
     if (adjacency_list.contains(guild) && adjacency_list.at(guild).contains(user)) {
         for (const auto &[owes, amount] : adjacency_list.at(guild).at(user)) {
@@ -69,14 +69,17 @@ cents Tracker::absolute_user_balance(guild_id guild, user_id user) {
             user_balance -= amount;
         }
     }
-    return (cents)user_balance;
+    std::cout << "absolute balance for " << user << ": " << llabs((cents)user_balance) << '\n';
+    return ((long long int)user_balance);
 }
 
-std::variant<bool, transaction_error> Tracker::add_transaction(guild_id guild, user_id owed, user_id owes,
-                                                               long double amount) {
-    if (absolute_user_balance(guild, owed) > 1e10 || absolute_user_balance(guild, owes) > 1e10) {
-        return transaction_error("One of the users involved in the transaction currently has more than 1e10 dollars "
-                                 "pending. Please clear existing transactions before continuing.");
+std::variant<cents, transaction_error> Tracker::add_transaction(guild_id guild, user_id owed, user_id owes,
+                                                                long double amount) {
+    if (user_balance(guild, owed) > 1e12) {
+        return transaction_error("User being owed money is owed > $1e10 and cannot be owed any more money");
+    }
+    if (user_balance(guild, owes) < -1e12) {
+        return transaction_error("User oweing money owes > $1e10 and cannot owe any more money");
     }
     if (amount > 1e10 || amount < -1e10 || (cents)(amount * 100) <= 0) {
         return transaction_error("Amount entered is either above 1e10 dollars, nothing or a negative value");
@@ -86,10 +89,11 @@ std::variant<bool, transaction_error> Tracker::add_transaction(guild_id guild, u
     std::thread add_edge_job(&Tracker::add_edge_and_compress, this,
                              Tracker_edge{guild, owed, owes, (cents)(amount * 100)});
     add_edge_job.detach();
-    return true;
+    return (cents)(amount * 100);
 }
 
 std::vector<Transaction> Tracker::get_transactions(guild_id guild, user_id user) {
+    std::lock_guard<std::mutex> guard(adjacency_list_mutex);
     std::vector<Transaction> transactions;
     if (adjacency_list.contains(guild) && adjacency_list.at(guild).contains(user) &&
         !adjacency_list.at(guild).at(user).empty()) {
@@ -108,6 +112,7 @@ std::vector<Transaction> Tracker::get_transactions(guild_id guild, user_id user)
 }
 
 void Tracker::save() {
+    std::lock_guard<std::mutex> guard(adjacency_list_mutex);
     std::cout << "Saving tracker state\n";
     nlohmann::json json;
     for (const auto &[guild, user_id_to_user_id_with_owed_amount] : adjacency_list) {

@@ -2,8 +2,10 @@
 
 extern std::string state_file;
 extern std::map<user_id, std::string> user_to_info;
+extern std::mutex user_state_mutex;
 
 std::optional<user_id> User_state::get_user_info(user_id user) {
+    std::lock_guard<std::mutex> guard(user_state_mutex);
     std::cout << "Getting user info for " << user << "\n";
     if (auto user_with_info = user_to_info.find(user); user_with_info != user_to_info.end()) {
         return user_with_info->second;
@@ -12,6 +14,7 @@ std::optional<user_id> User_state::get_user_info(user_id user) {
 }
 
 void User_state::set_user_info(dpp::user user, std::string info) {
+    std::lock_guard<std::mutex> guard(user_state_mutex);
     user_to_info[user.id.str()] = info;
     std::cout << "Setting payment info for " << user.username << " to " << info << '\n';
 }
@@ -21,6 +24,7 @@ User_state::User_state() { User_state::load(); }
 User_state::~User_state() { User_state::save(); }
 
 void User_state::save() {
+    std::lock_guard<std::mutex> guard(user_state_mutex);
     std::cout << "Saving user state\n";
     nlohmann::json json;
     json["user_state"] = user_to_info;
@@ -32,6 +36,7 @@ void User_state::save() {
 }
 
 void User_state::load() {
+    std::lock_guard<std::mutex> guard(user_state_mutex);
     std::cout << "Loading user state\n";
     user_to_info.clear();
     nlohmann::json json = Io_utils::read(state_file, "user state");

@@ -15,6 +15,12 @@ add_executable(${PROJECT_NAME}
 	src/commands/set_info.h
 	src/commands/get_info.cpp 
 	src/commands/get_info.h 
+	src/commands/owes_me.cpp 
+	src/commands/owes_me.h 
+	src/commands/iou.cpp 
+	src/commands/iou.h 
+	src/commands/pay.h 
+	src/commands/pay.cpp
 	src/states/state_manager.cpp 
 	src/states/state_manager.h 
 	src/states/user_state.cpp 

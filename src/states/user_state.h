@@ -28,5 +28,7 @@ class User_state {
 
     std::map<user_id, std::string> user_to_info;
 
+    std::mutex user_state_mutex;
+
     void load();
 };
