@@ -29,7 +29,7 @@ class Tracker {
   private:
     std::string state_file = "tracker_state.txt";
 
-    std::map<guild_id, std::mutex> guild_mutexes;
+    std::mutex adjacency_list_mutex;
 
     guild_adjacency_list adjacency_list;
 

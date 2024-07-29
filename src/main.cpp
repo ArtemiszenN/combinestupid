@@ -39,7 +39,8 @@ int main() {
                 dpp::snowflake user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
                 std::string user_info =
                     Get_info::get_info(user_state, user_id.str()).value_or("No payment details available for user");
-                event.reply(dpp::message(user_info).set_flags(dpp::m_ephemeral));
+                event.reply(dpp::message("Payment details for " + dpp::user::get_mention(user_id) + ":\n" + user_info)
+                                .set_flags(dpp::m_ephemeral));
             }
         });
 
