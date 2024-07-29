@@ -2,8 +2,10 @@
 
 std::string Iou::command_name = "iou";
 
+std::string Iou::help = "See who owes a user money";
+
 dpp::slashcommand Iou::command(dpp::snowflake bot_id) {
-    return dpp::slashcommand(Iou::command_name, "See who owes a user money", bot_id)
+    return dpp::slashcommand(Iou::command_name, Iou::help, bot_id)
         .add_option(dpp::command_option(dpp::co_user, "user", "User whom you want to check", false));
 }
 

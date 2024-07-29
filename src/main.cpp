@@ -1,4 +1,5 @@
 #include "commands/get_info.h"
+#include "commands/help.h"
 #include "commands/iou.h"
 #include "commands/owes_me.h"
 #include "commands/pay.h"
@@ -93,13 +94,16 @@ int main() {
                                       }},
                            payment_result);
             }
+            if (event.command.get_command_name() == Help::command_name) {
+                event.reply(dpp::message(Help::help_pretty_sprint()).set_flags(dpp::m_ephemeral));
+            }
         });
 
         bot.on_ready([&bot](auto event) {
             if (dpp::run_once<struct register_bot_commands>()) {
                 bot.global_bulk_command_create({Set_info::command(bot.me.id), Get_info::command(bot.me.id),
                                                 Owes_me::command(bot.me.id), Iou::command(bot.me.id),
-                                                Pay::command(bot.me.id)});
+                                                Pay::command(bot.me.id), Help::command(bot.me.id)});
             }
         });
 

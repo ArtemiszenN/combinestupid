@@ -9,6 +9,7 @@
 
 namespace Pay {
 extern std::string command_name;
+extern std::string help;
 dpp::slashcommand command(dpp::snowflake bot_id);
 std::variant<cents, transaction_error> pay(std::shared_ptr<Tracker> tracker, guild_id guild, user_id from, user_id to,
                                            long double amount);
