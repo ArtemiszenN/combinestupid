@@ -3,7 +3,7 @@
 extern std::string state_file;
 extern guild_adjacency_list adjacency_list;
 extern guild_adjacency_list transposed_adjacency_list;
-extern std::map<guild_id, std::mutex> guild_mutexes;
+extern std::mutex adjacency_list_mutex;
 
 void Tracker::add_edge(Tracker_edge edge) {
     adjacency_list[edge.guild][edge.owed][edge.owes] += edge.amount;
@@ -12,7 +12,7 @@ void Tracker::add_edge(Tracker_edge edge) {
 
 void Tracker::add_edge_and_compress(Tracker_edge edge) {
     auto [guild, from, to, amount] = edge;
-    std::lock_guard<std::mutex> guard(guild_mutexes[guild]);
+    std::lock_guard<std::mutex> guard(adjacency_list_mutex);
     Tracker::add_edge(edge);
     std::map<user_id, long long int> balances;
     for (auto [from, to_with_amount] : adjacency_list[guild]) {
@@ -52,6 +52,8 @@ void Tracker::add_edge_and_compress(Tracker_edge edge) {
             owes.push({owes_user, owes_amount - owed_amount});
         }
     }
+    std::cout << "Added transaction " << edge.owed << " is owed " << edge.amount << " by " << edge.owes << " in server "
+              << edge.guild << '\n';
 }
 
 cents Tracker::absolute_user_balance(guild_id guild, user_id user) {
@@ -76,12 +78,14 @@ std::variant<bool, transaction_error> Tracker::add_transaction(guild_id guild, u
         return transaction_error("One of the users involved in the transaction currently has more than 1e10 dollars "
                                  "pending. Please clear existing transactions before continuing.");
     }
-    if (amount > 1e10 || amount < -1e10 || (cents)amount * 100UL <= 0) {
+    if (amount > 1e10 || amount < -1e10 || (cents)(amount * 100) <= 0) {
         return transaction_error("Amount entered is either above 1e10 dollars, nothing or a negative value");
     }
+    std::cout << "Adding transaction " << owed << " is owed " << amount << " by " << owes << " in server " << guild
+              << '\n';
     std::thread add_edge_job(&Tracker::add_edge_and_compress, this,
-                             Tracker_edge{guild, owed, owes, (cents)amount * 100UL});
-    add_edge_job.join();
+                             Tracker_edge{guild, owed, owes, (cents)(amount * 100)});
+    add_edge_job.detach();
     return true;
 }
 
@@ -112,12 +116,9 @@ void Tracker::save() {
         }
     }
     // this should be in io_utils, but passing json as argument to another translation unit is bugged
-    std::thread writer([this, &json]() {
-        std::ofstream out(state_file);
-        out << json;
-        out.close();
-    });
-    writer.join();
+    std::ofstream out(state_file);
+    out << json;
+    out.close();
     std::cout << "Tracker state saved\n";
 }
 
@@ -136,12 +137,6 @@ void Tracker::load() {
     std::cout << "Tracker state loaded successfully\n";
 }
 
-Tracker::Tracker() {
-    std::thread t(&Tracker::load, this);
-    t.join();
-}
+Tracker::Tracker() { Tracker::load(); }
 
-Tracker::~Tracker() {
-    std::thread t(&Tracker::save, this);
-    t.join();
-}
+Tracker::~Tracker() { Tracker::save(); }

@@ -16,27 +16,18 @@ void User_state::set_user_info(dpp::user user, std::string info) {
     std::cout << "Setting payment info for " << user.username << " to " << info << '\n';
 }
 
-User_state::User_state() {
-    std::thread t(&User_state::load, this);
-    t.join();
-}
+User_state::User_state() { User_state::load(); }
 
-User_state::~User_state() {
-    std::thread t(&User_state::save, this);
-    t.join();
-}
+User_state::~User_state() { User_state::save(); }
 
 void User_state::save() {
     std::cout << "Saving user state\n";
     nlohmann::json json;
     json["user_state"] = user_to_info;
     // this should be in io_utils, but passing json as argument to another translation unit is bugged
-    std::thread writer([this, &json]() {
-        std::ofstream out(state_file);
-        out << json;
-        out.close();
-    });
-    writer.join();
+    std::ofstream out(state_file);
+    out << json;
+    out.close();
     std::cout << "User state saved\n";
 }
 
