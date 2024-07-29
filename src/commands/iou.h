@@ -9,6 +9,7 @@
 
 namespace Iou {
 extern std::string command_name;
+extern std::string help;
 dpp::slashcommand command(dpp::snowflake bot_id);
 std::string iou(std::shared_ptr<Tracker> tracker, guild_id guild, user_id user);
 } // namespace Iou
