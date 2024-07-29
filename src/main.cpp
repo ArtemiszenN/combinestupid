@@ -54,20 +54,25 @@ int main() {
             if (event.command.get_command_name() == Owes_me::command_name) {
                 dpp::snowflake owed = user.id;
                 dpp::snowflake owes = std::get<dpp::snowflake>(event.get_parameter("user"));
-                long double amount = std::get<double>(event.get_parameter("amount"));
-                std::string comment = std::get<std::string>(event.get_parameter("comment"));
-                std::variant<cents, transaction_error> add_payment_result =
-                    Owes_me::owesme(tracker, guild.str(), owed.str(), owes.str(), amount);
-                std::visit(overloaded{[&event, &owes, &owed, &amount, &comment](cents transferred) {
-                                          event.reply(dpp::message(dpp::user::get_mention(owes) + " now owes " +
-                                                                   dpp::user::get_mention(owed) + " an additional $" +
-                                                                   std::to_string((long double)(transferred / 100.0)) +
-                                                                   ". Reason:\n" + comment));
-                                      },
-                                      [&event](transaction_error error) {
-                                          event.reply(dpp::message(error).set_flags(dpp::m_ephemeral));
-                                      }},
-                           add_payment_result);
+                if (owed == owes) {
+                    event.reply(dpp::message("Can't owe yourself").set_flags(dpp::m_ephemeral));
+                } else {
+                    long double amount = std::get<double>(event.get_parameter("amount"));
+                    std::string comment = std::get<std::string>(event.get_parameter("comment"));
+                    std::variant<cents, transaction_error> add_payment_result =
+                        Owes_me::owesme(tracker, guild.str(), owed.str(), owes.str(), amount);
+                    std::visit(overloaded{[&event, &owes, &owed, &amount, &comment](cents transferred) {
+                                              event.reply(
+                                                  dpp::message(dpp::user::get_mention(owes) + " now owes " +
+                                                               dpp::user::get_mention(owed) + " an additional $" +
+                                                               std::to_string((long double)(transferred / 100.0)) +
+                                                               ". Reason:\n" + comment));
+                                          },
+                                          [&event](transaction_error error) {
+                                              event.reply(dpp::message(error).set_flags(dpp::m_ephemeral));
+                                          }},
+                               add_payment_result);
+                }
             }
             if (event.command.get_command_name() == Iou::command_name) {
                 dpp::snowflake user_id;
@@ -81,18 +86,22 @@ int main() {
             if (event.command.get_command_name() == Pay::command_name) {
                 dpp::snowflake from = user.id;
                 dpp::snowflake to = std::get<dpp::snowflake>(event.get_parameter("user"));
-                long double amount = std::get<double>(event.get_parameter("amount"));
-                std::variant<cents, transaction_error> payment_result =
-                    Pay::pay(tracker, guild.str(), from.str(), to.str(), amount);
-                std::visit(overloaded{[&event, &from, &to, &amount](cents transferred) {
-                                          event.reply(dpp::message(dpp::user::get_mention(from) + " paid " +
-                                                                   dpp::user::get_mention(to) + " $" +
-                                                                   std::to_string((long double)(transferred / 100.0))));
-                                      },
-                                      [&event](transaction_error error) {
-                                          event.reply(dpp::message(error).set_flags(dpp::m_ephemeral));
-                                      }},
-                           payment_result);
+                if (from == to) {
+                    event.reply(dpp::message("Can't pay yourself").set_flags(dpp::m_ephemeral));
+                } else {
+                    long double amount = std::get<double>(event.get_parameter("amount"));
+                    std::variant<cents, transaction_error> payment_result =
+                        Pay::pay(tracker, guild.str(), from.str(), to.str(), amount);
+                    std::visit(overloaded{[&event, &from, &to, &amount](cents transferred) {
+                                              event.reply(dpp::message(
+                                                  dpp::user::get_mention(from) + " paid " + dpp::user::get_mention(to) +
+                                                  " $" + std::to_string((long double)(transferred / 100.0))));
+                                          },
+                                          [&event](transaction_error error) {
+                                              event.reply(dpp::message(error).set_flags(dpp::m_ephemeral));
+                                          }},
+                               payment_result);
+                }
             }
             if (event.command.get_command_name() == Help::command_name) {
                 event.reply(dpp::message(Help::help_pretty_sprint()).set_flags(dpp::m_ephemeral));
