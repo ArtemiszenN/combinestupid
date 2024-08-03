@@ -81,7 +81,7 @@ std::variant<cents, transaction_error> Tracker::add_transaction(guild_id guild, 
     if (user_balance(guild, owes) < -1e12) {
         return transaction_error("User oweing money owes > $1e10 and cannot owe any more money");
     }
-    if (amount > 1e10 || amount < -1e10 || (cents)(amount * 100) <= 0) {
+    if (amount > 1e10 || amount < -1e10 || (long long int)(amount * 100) <= 0) {
         return transaction_error("Amount entered is either above 1e10 dollars, nothing or a negative value");
     }
     std::cout << "Adding transaction " << owed << " is owed " << amount << " by " << owes << " in server " << guild
