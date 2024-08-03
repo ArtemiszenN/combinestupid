@@ -31,6 +31,19 @@ int main() {
         std::string token = token_result.value();
         dpp::cluster bot(token);
         std::cout << "Starting bot\n";
+        bot.on_ready([&bot](const dpp::ready_t &event) {
+            if (dpp::run_once<struct register_bot_commands>()) {
+                bot.set_presence(dpp::presence(dpp::presence_status::ps_online, dpp::activity_type::at_watching,
+                                               std::to_string(event.guild_count) + " guilds"));
+
+                bot.start_timer(
+                    [&bot](const dpp::timer &timer) {
+                        bot.set_presence(dpp::presence(dpp::presence_status::ps_online, dpp::activity_type::at_watching,
+                                                       std::to_string(dpp::get_guild_cache()->count()) + " guilds"));
+                    },
+                    120);
+            }
+        });
         std::shared_ptr<User_state> user_state = std::make_shared<User_state>();
         std::shared_ptr<Tracker> tracker = std::make_shared<Tracker>();
         std::unique_ptr<State_manager> state_manager = std::make_unique<State_manager>(60, 120, user_state, tracker);
