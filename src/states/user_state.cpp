@@ -1,9 +1,5 @@
 #include "user_state.h"
 
-extern std::string state_file;
-extern std::map<user_id, std::string> user_to_info;
-extern std::mutex user_state_mutex;
-
 std::optional<user_id> User_state::get_user_info(user_id user) {
     std::lock_guard<std::mutex> guard(user_state_mutex);
     std::cout << "Getting user info for " << user << "\n";

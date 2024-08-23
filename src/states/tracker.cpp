@@ -1,10 +1,5 @@
 #include "tracker.h"
 
-extern std::string state_file;
-extern guild_adjacency_list adjacency_list;
-extern guild_adjacency_list transposed_adjacency_list;
-extern std::mutex adjacency_list_mutex;
-
 void Tracker::add_edge(Tracker_edge edge) {
     adjacency_list[edge.guild][edge.owed][edge.owes] += edge.amount;
     transposed_adjacency_list[edge.guild][edge.owes][edge.owed] += edge.amount;
